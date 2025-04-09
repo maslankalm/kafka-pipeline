@@ -24,6 +24,8 @@ services:
     environment:
       KAFKA_BROKER: broker:9092
       KAFKA_TOPIC: kafka-pipeline
+      TXS: 100
+      INTERVAL: 10
       PYTHONUNBUFFERED: 1
     depends_on:
       - broker

@@ -5,7 +5,8 @@ from kafka.errors import NoBrokersAvailable, NodeNotReadyError, TopicAlreadyExis
 
 BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
 TOPIC = os.getenv("KAFKA_TOPIC", "kafka-pipeline")
-TXS = os.getenv("TXS", 50) # txs to generate
+TXS = os.getenv("TXS", 50) # initial txs batch to generate
+INTERVAL = os.getenv("INTERVAL", 5) # time in seconds between txs after initial batch
 
 
 def wait_for_kafka(bootstrap_servers=BROKER):
@@ -67,10 +68,16 @@ def generate_dummy_eth_transaction():
 def run_producer():
     wait_for_kafka()
     create_topic()
-    for _ in range(TXS):
+
+    for _ in range(int(TXS)):
         tx = generate_dummy_eth_transaction()
         send_to_kafka(tx)
-    print(f"Generated {TXS} transactions, exiting.")
+    print(f"Generated {TXS} initial transactions.")
 
+    print(f"Will create new transaction per {INTERVAL} seconds.")
+    while True:
+        tx = generate_dummy_eth_transaction()
+        send_to_kafka(tx)
+        time.sleep(int(INTERVAL))
 
 run_producer()
