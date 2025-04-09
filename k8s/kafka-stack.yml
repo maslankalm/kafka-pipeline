@@ -1,0 +1,55 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-broker-config
+data:
+  KAFKA_NODE_ID: "1"
+  KAFKA_PROCESS_ROLES: "broker,controller"
+  KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://localhost:9093"
+  KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker:9092"
+  KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+  KAFKA_CONTROLLER_QUORUM_VOTERS: "1@localhost:9093"
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+  KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+  KAFKA_NUM_PARTITIONS: "3"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-broker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-broker
+  template:
+    metadata:
+      labels:
+        app: kafka-broker
+    spec:
+      containers:
+        - name: broker
+          image: apache/kafka:latest
+          ports:
+            - containerPort: 9092
+          envFrom:
+            - configMapRef:
+                name: kafka-broker-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: broker
+spec:
+  ports:
+    - port: 9092
+      targetPort: 9092
+  selector:
+    app: kafka-broker
+  clusterIP: None

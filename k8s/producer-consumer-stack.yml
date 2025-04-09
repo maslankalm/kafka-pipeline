@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: producer-consumer-config
+data:
+  KAFKA_BROKER: "broker:9092"
+  KAFKA_TOPIC: "kafka-pipeline"
+  TXS: "100"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-producer
+  template:
+    metadata:
+      labels:
+        app: kafka-producer
+    spec:
+      containers:
+        - name: producer
+          image: maslankalm/kafka-producer-consumer:1.0.1
+          command: ["python", "/app/producer.py"]
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          envFrom:
+            - configMapRef:
+                name: producer-consumer-config
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer
+    spec:
+      containers:
+        - name: consumer
+          image: maslankalm/kafka-producer-consumer:1.0.1
+          command: ["python", "/app/consumer.py"]
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          envFrom:
+            - configMapRef:
+                name: producer-consumer-config
