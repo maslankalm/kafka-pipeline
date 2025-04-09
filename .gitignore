@@ -1,2 +1,4 @@
 .venv
 txs.csv
+tf/.terraform*
+tf/terraform.tfstate*

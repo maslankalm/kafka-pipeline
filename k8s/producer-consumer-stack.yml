@@ -7,6 +7,7 @@ data:
   KAFKA_BROKER: "broker:9092"
   KAFKA_TOPIC: "kafka-pipeline"
   TXS: "100"
+  INTERVAL: "10"
 
 ---
 apiVersion: apps/v1
