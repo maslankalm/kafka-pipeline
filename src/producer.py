@@ -1,7 +1,7 @@
 import random, time, json, os
 from kafka import KafkaConsumer, KafkaProducer
 from kafka.admin import KafkaAdminClient, NewTopic
-from kafka.errors import NoBrokersAvailable, TopicAlreadyExistsError
+from kafka.errors import NoBrokersAvailable, NodeNotReadyError, TopicAlreadyExistsError
 
 BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
 TOPIC = os.getenv("KAFKA_TOPIC", "kafka-pipeline")
@@ -22,20 +22,26 @@ def wait_for_kafka(bootstrap_servers=BROKER):
 
 
 def create_topic(topic_name=TOPIC, bootstrap_servers=BROKER):
-    try:
-        admin_client = KafkaAdminClient(bootstrap_servers=bootstrap_servers)
-        topic = NewTopic(
-            name=topic_name,
-            num_partitions=1,
-            replication_factor=1
-        )
-        admin_client.create_topics(
-            new_topics=[topic],
-            validate_only=False
-        )
-        admin_client.close()
-    except TopicAlreadyExistsError:
-        print(f"Topic {topic_name} already exists.")
+    while True:
+        try:
+            admin_client = KafkaAdminClient(bootstrap_servers=bootstrap_servers)
+            topic = NewTopic(
+                name=topic_name,
+                num_partitions=1,
+                replication_factor=1
+            )
+            admin_client.create_topics(
+                new_topics=[topic],
+                validate_only=False
+            )
+            admin_client.close()
+            break
+        except TopicAlreadyExistsError:
+            print(f"Topic {topic_name} already exists.")
+            break
+        except NodeNotReadyError:
+            print("Kafka broker not ready, retry in 10s.")
+            time.sleep(10)
 
 
 def send_to_kafka(message_content, topic_name=TOPIC, bootstrap_servers=BROKER):
@@ -64,6 +70,7 @@ def run_producer():
     for _ in range(TXS):
         tx = generate_dummy_eth_transaction()
         send_to_kafka(tx)
+    print(f"Generated {TXS} transactions, exiting.")
 
 
 run_producer()
