@@ -5,7 +5,6 @@ resource "kubernetes_config_map" "producer_consumer_config" {
   }
 
   data = {
-    KAFKA_NODE_ID = "1"
     KAFKA_BROKER  = "broker:9092"
     KAFKA_TOPIC   = "kafka-pipeline"
     TXS           = "100"

@@ -5,8 +5,8 @@ from kafka.errors import NoBrokersAvailable, NodeNotReadyError, TopicAlreadyExis
 
 BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
 TOPIC = os.getenv("KAFKA_TOPIC", "kafka-pipeline")
-TXS = os.getenv("TXS", 50) # initial txs batch to generate
-INTERVAL = os.getenv("INTERVAL", 5) # time in seconds between txs after initial batch
+TXS = os.getenv("TXS", 50)
+INTERVAL = os.getenv("INTERVAL", 5)
 
 
 def wait_for_kafka(bootstrap_servers=BROKER):
